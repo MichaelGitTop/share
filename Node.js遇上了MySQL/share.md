@@ -63,7 +63,7 @@
    或，查询语句建表：
 
    ```mysql
-   CREATE TABLE IF NOT EXISTS `rodolist`(
+   CREATE TABLE IF NOT EXISTS `todolist`(
       `id` INT UNSIGNED AUTO_INCREMENT,
       `name` VARCHAR(100) NOT NULL,
       `object` VARCHAR(100) NOT NULL,
@@ -79,7 +79,7 @@
 
 ### 创建Node服务
 
-1. 新建一个文件夹，在此文件夹下打开cmd，输入`npm init`初始化一个项目，输入一些基本信息。
+1. 新建一个文件夹，在此文件夹下打开cmd，输入`npm init -y`初始化一个项目，输入一些基本信息。
 
 2. 安装所需依赖包：`npm i body-parser cookie-parser cors express multer mysql -S`
 
@@ -94,7 +94,7 @@
    app.listen(port, () => console.log(`服务启动成功，端口号为：${port}`));
    ```
 
-4.  cmd输入`node index.js`，浏览器打开localhost，但为空白。
+4.  cmd输入`node index.js`，浏览器打开localhost，但为`Cannot GET /`。
 
 5. 写一个get接口，返回内容：
 
@@ -147,7 +147,7 @@
 2.  使用all方法和正则表达，拦截所有接口，如登录状态拦截：
 
    ```javascript
-   app.all('*', (req, res) => {
+   app.all('*', (req, res, next) => {
        // 判断登录token是否存在且有效，否则重定向到登录页面
        
        // 如果有效，则向下匹配
@@ -177,8 +177,19 @@
    ```
 
    使用`Postman`测试接口
-
-
+   
+   ```javascript
+   127.0.0.1/test/10086?id=10010
+   {
+       "name": "放飞机",
+       "beginTime": "2020-12-16",
+       "endTime": "2020-12-20",
+       "object": "李四",
+       "mark": "sdf"
+   }
+   ```
+   
+   
 
 ### 跨域问题
 
@@ -197,7 +208,7 @@
 
    ![2](2.png)
 
-2.  连接数据库：
+2. 连接数据库：
 
    ```javascript
    const mysql = require('mysql');             // 引入MySQL
@@ -210,6 +221,8 @@
        connectTimeout: 5000,       // 连接超时
        multipleStatements: true,  	// 是否允许一个query中包含多条SQL语句
    }
+   
+   const conn = mysql.createConnection(option);
    ```
 
 3.  创建返回结果的构造方法
@@ -259,18 +272,21 @@
 1. 创建重连机制方法：
 
   ```javascript 
-  // 断线重连机制
-  function repool() {
-      // 创建连接池
-      pool = mysql.createPool({
-          ...option,
-          waitForConnections: true,   // 当无连接池可用时，等待（true），还是抛异常（false）
-          connectionLimit: 100,       // 连接数限制
-          queueLimit: 0,              // 最大连接等待数（0为不限制）
-      })
-      pool.on('error', err => err.code === 'PROTOCOL_CONNECTION_LOST' && setTimeout(repool, 2000));
-      app.all('*', (_, __, next) => pool.getConnection(err => err && setTimeout(repool, 2000) || next()));
-  }
+let pool;
+repool();
+
+// 断线重连机制
+function repool() {
+    // 创建连接池
+    pool = mysql.createPool({
+        ...option,
+        waitForConnections: true,   // 当无连接池可用时，等待（true），还是抛异常（false）
+        connectionLimit: 100,       // 连接数限制
+        queueLimit: 0,              // 最大连接等待数（0为不限制）
+    })
+    pool.on('error', err => err.code === 'PROTOCOL_CONNECTION_LOST' && setTimeout(repool, 2000));
+    app.all('*', (_, __, next) => pool.getConnection(err => err && setTimeout(repool, 2000) || next()));
+}
   ```
 
 2. 变更连接方法：
@@ -302,7 +318,7 @@
    const router = express.Router();
    ```
 
-2.  暴漏以下模块出去：连接池、返回结果构造方法、express路由、app。并将js文件更名为`connect.js`
+2.  暴漏以下模块出去：连接池、返回结果构造方法、express路由、app。并将js文件更名为`connect.js`，并将所有请求方法删除。
 
    ```javascript
    module.exports = {pool, Result, router, app};
@@ -330,7 +346,7 @@
    module.exports = router;
    ```
 
-5.   入口文件，引入具体模块：
+5.   入口文件，引入具体模块（具体内容请看`场景实践`第3点）：
 
    ```javascript
    app.use('/toDoList', toDoList);
@@ -345,7 +361,13 @@
    })
    ```
 
+6. 记得更改`package.json`文件里面的命令：
 
+   ```javascript
+   "start": "hotnode index.js"
+   ```
+
+   
 
 ### 场景实践
 
@@ -358,8 +380,7 @@
 3.  入口文件内容：
 
    ```javascript
-   const {app, pool, Result} = require('./connect');
-   const login = require('./login/index');
+   const {app} = require('./connect');
    const toDoList = require('./todolist/index');
    
    app.all('*', (req, res, next) => {
@@ -367,7 +388,6 @@
        next();
    })
    
-   app.use('/login', login);
    app.use('/toDoList', toDoList);
    
    const port = 80;
@@ -423,7 +443,6 @@
    }
    
    module.exports = {pool, Result, router, app};
-   
    ```
 
 5. 模块文件 `/todolist/index.js`内容：
@@ -535,7 +554,6 @@
    });
    
    module.exports = router;
-   
    ```
 
 

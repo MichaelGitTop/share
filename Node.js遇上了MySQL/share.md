@@ -271,23 +271,23 @@
 
 1. 创建重连机制方法：
 
-  ```javascript 
-let pool;
-repool();
+   ```javascript 
+   let pool;
+   repool();
 
-// 断线重连机制
-function repool() {
-    // 创建连接池
-    pool = mysql.createPool({
-        ...option,
-        waitForConnections: true,   // 当无连接池可用时，等待（true），还是抛异常（false）
-        connectionLimit: 100,       // 连接数限制
-        queueLimit: 0,              // 最大连接等待数（0为不限制）
-    })
-    pool.on('error', err => err.code === 'PROTOCOL_CONNECTION_LOST' && setTimeout(repool, 2000));
-    app.all('*', (_, __, next) => pool.getConnection(err => err && setTimeout(repool, 2000) || next()));
-}
-  ```
+   // 断线重连机制
+   function repool() {
+       // 创建连接池
+       pool = mysql.createPool({
+           ...option,
+           waitForConnections: true,   // 当无连接池可用时，等待（true），还是抛异常（false）
+           connectionLimit: 100,       // 连接数限制
+           queueLimit: 0,              // 最大连接等待数（0为不限制）
+       })
+       pool.on('error', err => err.code === 'PROTOCOL_CONNECTION_LOST' && setTimeout(repool, 2000));
+       app.all('*', (_, __, next) => pool.getConnection(err => err && setTimeout(repool, 2000) || next()));
+   }
+   ```
 
 2. 变更连接方法：
 

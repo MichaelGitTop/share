@@ -58,7 +58,7 @@
 
 3. 使用`Navicat`创建数据库，并建立数据表
 
-   ![批注 2020-12-15 102000](C:\Users\Michael\Desktop\Michael_work\技术分享\share\Node.js遇上了MySQL\1.png)
+   ![批注 2020-12-15 102000](1.png)
 
    或，查询语句建表：
 
@@ -195,7 +195,7 @@
 
 1.  刚刚已经建表了，现在使用navicat插入几条数据：
 
-   ![2](C:\Users\Michael\Desktop\Michael_work\技术分享\share\Node.js遇上了MySQL\2.png)
+   ![2](2.png)
 
 2.  连接数据库：
 
@@ -310,7 +310,7 @@
 
 3.  建立一个新文件夹，用来放置某模块的请求方法：
 
-   ![3](C:\Users\Michael\Desktop\Michael_work\技术分享\share\Node.js遇上了MySQL\3.png)
+   ![3](3.png)
 
 4.  `/todolist/index.js`内容为：
 
@@ -353,7 +353,7 @@
 
 2. 提前准备：前端服务、静态页面。
 
-   ![4](C:\Users\Michael\Desktop\Michael_work\技术分享\share\Node.js遇上了MySQL\4.png)
+   ![4](4.png)
 
 3.  入口文件内容：
 
